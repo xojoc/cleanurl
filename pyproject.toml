@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "cleanurl"
+version = "0.1.1"
+description = "Removes clutter from URLs and returns a canonicalized version"
+authors = ["Alexandru Cojocaru <hi@xojoc.pw>"]
+license = "AGPL-3.0-or-later"
+readme = "README.md"
+homepage = "https://github.com/xojoc/cleanurl"
+repository = "https://github.com/xojoc/cleanurl"
+keywords = ['url', 'canonical']
+classifiers = [
+	    "Environment :: Web Environment",
+	    "Intended Audience :: Developers",
+	    "Operating System :: OS Independent",
+	    "Typing :: Typed" ]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+
+[tool.poetry.dev-dependencies]
+mypy = "^0.931"
+flake8 = "^4.0.1"
+pytest = "^7.0.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

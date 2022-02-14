@@ -1,6 +1,20 @@
 from __future__ import annotations  # for union type
 from urllib import parse as urlparse
 from dataclasses import dataclass
+import re
+
+
+def __replace_last(s, old, new):
+    h, _s, t = s.rpartition(old)
+    return h + new + t
+
+
+def __is_integer(s):
+    try:
+        _ = int(s)
+        return True
+    except ValueError:
+        return False
 
 
 @dataclass
@@ -24,6 +38,12 @@ class Result:
             u = u.removeprefix("//")
         return u
 
+    @property
+    def parsed_query(self) -> list[tuple[str, str]]:
+        return urlparse.parse_qsl(
+            self.parsed_url.query, keep_blank_values=True
+        )
+
 
 def __canonical_host(host, respect_semantics):
     if not host:
@@ -31,6 +51,7 @@ def __canonical_host(host, respect_semantics):
 
     host = host.lower()
     host = host.strip(".")
+    host = re.sub(r"\.{2,}", ".", host)
 
     if respect_semantics:
         return host
@@ -127,11 +148,6 @@ def __canonical_query(query, respect_semantics):
     return sorted([q for q in pq if q[0] not in queries_to_skip])
 
 
-def replace_last(s, old, new):
-    h, _s, t = s.rpartition(old)
-    return h + new + t
-
-
 def __fragment_to_path(scheme, host, path, fragment):
     if not fragment:
         return None
@@ -155,7 +171,7 @@ def __fragment_to_path(scheme, host, path, fragment):
         and fragment.startswith("!msg/")
     ):
         new_path = "/g/" + fragment[len("!msg/") :].replace("/", "/c/", 1)
-        return replace_last(new_path, "/", "/m/")
+        return __replace_last(new_path, "/", "/m/")
 
     if path in ("", "/") and fragment.startswith("!"):
         new_path = fragment[1:]
@@ -164,6 +180,41 @@ def __fragment_to_path(scheme, host, path, fragment):
         return new_path
 
 
+# fixme: the amped url may have a different scheme from the amp url
+def __canonical_amp(host, path, parsed_query, respect_semantics, host_remap):
+    path_is_amped_url = False
+    if host in ("www.google.com", "google.com"):
+        if path.startswith("/amp/"):
+            path_is_amped_url = True
+
+    # https://example-com.cdn.ampproject.org/c/s/example.com/g?value=Hello%20World
+
+    if host.endswith(".cdn.ampproject.org"):
+        path_is_amped_url = True
+
+    if path_is_amped_url:
+        parts = path.split("/")
+        while parts and "." not in parts[0]:
+            parts = parts[1:]
+
+        path = "//" + "/".join(parts)
+        if parsed_query:
+            path += "?" + urlparse.urlencode(parsed_query)
+        amped_url = cleanurl(
+            path,
+            respect_semantics=respect_semantics,
+            host_remap=host_remap,
+        )
+        host = amped_url.parsed_url.netloc
+        path = amped_url.parsed_url.path
+        parsed_query = amped_url.parsed_query
+
+    path = path.removeprefix("/amp/")
+
+    return host, path, parsed_query
+
+
+# fixme: the archived url may have a different scheme from the webarchive url
 def __canonical_webarchive(
     host, path, parsed_query, respect_semantics, host_remap
 ):
@@ -185,8 +236,8 @@ def __canonical_webarchive(
                 generic=False,
                 respect_semantics=respect_semantics,
                 host_remap=host_remap,
-            ).parsed_url
-            return u.netloc, u.path, u.query
+            )
+            return u.parsed_url.netloc, u.parsed_url.path, u.parsed_query
         except Exception:
             pass
 
@@ -279,6 +330,19 @@ def __canonical_wikipedia(
                 path = "/wiki/" + q[1]
         parsed_query = []
 
+        host_parts = host.split(".")
+        if len(host_parts) == 4 and host_parts[1] == "m":
+            host_parts.pop(1)
+
+        if (
+            not respect_semantics
+            and len(host_parts) == 3
+            and len(host_parts[0]) == 2
+        ):
+            host_parts.pop(0)
+
+        host = ".".join(host_parts)
+
     return host, path, parsed_query
 
 
@@ -323,6 +387,74 @@ def __canonical_twitter(
             parsed_query = []
             host = "twitter.com"
 
+    if host in ("www.nitter.net", "nitter.net"):
+        parts = path.split("/")
+        if (
+            len(parts) == 4
+            and parts[0] == ""
+            and parts[2] == "status"
+            and __is_integer(parts[3])
+        ):
+            path = "/i/status/" + parts[3]
+            parsed_query = []
+            if host_remap:
+                host = "twitter.com"
+
+    queries_to_skip = {"src"}
+    parsed_query = sorted(
+        [q for q in parsed_query if q[0] not in queries_to_skip]
+    )
+
+    return host, path, parsed_query
+
+
+def __canonical_mastodon(
+    host, path, parsed_query, respect_semantics, host_remap
+):
+    parts = path.split("/")
+    if (
+        len(parts) == 4
+        and parts[0] == ""
+        and parts[1] == "web"
+        and parts[2].startswith("@")
+        and __is_integer(parts[3])
+    ):
+        parts.pop(1)
+        path = "/".join(parts)
+        parsed_query = []
+
+    if host_remap:
+        if (
+            len(parts) == 3
+            and parts[0] == ""
+            and parts[1].startswith("@")
+            and parts[1].count("@") == 2
+            and "." in parts[1]
+            and __is_integer(parts[2])
+        ):
+            account_parts = parts[1].split("@")
+            if len(account_parts) == 3 and "." in account_parts[2]:
+                host = account_parts[2]
+                path = "@" + account_parts[1] + "/" + parts[2]
+                parsed_query = []
+
+    return host, path, parsed_query
+
+
+def __canonical_stackoverflow(
+    host, path, parsed_query, respect_semantics, host_remap
+):
+    parts = path.split("/")
+    if (
+        host.endswith(".com")
+        and len(parts) == 4
+        and parts[1] == "questions"
+        and __is_integer(parts[2])
+        and len(parts[3]) > 0
+    ):
+        path = "/q/" + parts[2]
+        parsed_query = []
+
     return host, path, parsed_query
 
 
@@ -341,6 +473,8 @@ def __canonical_specific_websites(
         __canonical_arstechnica,
         __canonical_bbc,
         __canonical_twitter,
+        __canonical_mastodon,
+        __canonical_stackoverflow,
     ]:
         result = h(host, path, parsed_query, respect_semantics, host_remap)
         if result:
@@ -367,7 +501,7 @@ def cleanurl(
     generic=False,
     respect_semantics=True,
     host_remap=True,
-):
+) -> Result | None:
     if not url:
         return None
 
@@ -391,6 +525,15 @@ def cleanurl(
     if new_path is not None:
         path = new_path
         fragment = ""
+
+    result = __canonical_amp(
+        host, path, parsed_query, respect_semantics, host_remap
+    )
+    if result:
+        host, path, parsed_query = result
+        host = host or ""
+        path = path or ""
+        parsed_query = parsed_query or []
 
     if not generic:
         host, path, parsed_query = __canonical_specific_websites(

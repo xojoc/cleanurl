@@ -85,8 +85,6 @@ class Clean(unittest.TestCase):
             "path-normalization.com/a",
             "https://www.youtube.com/watch?v=71SsVUmT1ys&ignore=query",
             "youtu.be/71SsVUmT1ys",
-            "https://www.youtube.com/embed/71SsVUmT1ys?ignore=query",
-            "youtu.be/71SsVUmT1ys",
             "https://www.xojoc.pw/blog/////focus.html",
             "xojoc.pw/blog/focus",
             "https://web.archive.org/web/20200103092739/https://www.xojoc.pw/blog/focus.html",
@@ -114,13 +112,15 @@ class Clean(unittest.TestCase):
             "https://www.techcrunch.com/2009/05/30/vidoop-is-dead-employees-getting-computers-in-lieu-of-wages/?awesm=tcrn.ch_2t3&utm_campaign=techcrunch&utm_content=techcrunch-autopost&utm_medium=tcrn.ch-twitter&utm_source=direct-tcrn.ch",
             "techcrunch.com/2009/05/30/vidoop-is-dead-employees-getting-computers-in-lieu-of-wages",
             "https://dev.tube/video/EZ05e7EMOLM",
-            "youtu.be/EZ05e7EMOLM",
+            "youtu.be/ez05e7emolm",
+            "https://www.youtube.com/embed/71SsVUmT1ys?ignore=query",
+            "youtu.be/71ssvumt1ys",
             "https://edition.cnn.com/2021/09/29/business/supply-chain-workers/index.html",
             "cnn.com/2021/09/29/business/supply-chain-workers",
             "https://www.google.com/amp/s/www.cnbc.com/amp/2021/04/27/archegos-hit-to-ubs-stuns-investors-as-shares-slide.html",
             "cnbc.com/2021/04/27/archegos-hit-to-ubs-stuns-investors-as-shares-slide",
             "https://en.m.wikipedia.org/wiki/Daphne_Caruana_Galizia",
-            "wikipedia.org/wiki/Daphne_Caruana_Galizia",
+            "wikipedia.org/wiki/daphne_caruana_galizia",
         ]
 
         for u, r in zip(urls[0::2], urls[1::2]):

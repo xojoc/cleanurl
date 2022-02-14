@@ -87,6 +87,8 @@ def __canonical_path(scheme, path, respect_semantics):
     if respect_semantics:
         return path
 
+    path = path.lower()
+
     suffixes = [
         "/default",
         "/index",
@@ -499,7 +501,7 @@ def _remap_host(host):
 def cleanurl(
     url: str | urlparse.ParseResult,
     generic=False,
-    respect_semantics=True,
+    respect_semantics=False,
     host_remap=True,
 ) -> Result | None:
     if not url:

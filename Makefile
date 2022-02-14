@@ -1,7 +1,7 @@
 
 lint:
 	poetry run mypy src
-	poetry run flake8 --extend-ignore E501,E741 src | tac
+	poetry run flake8 --extend-ignore E501,E741,E203 src | tac
 
 test:
 	poetry run pytest

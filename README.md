@@ -34,7 +34,7 @@ If you want to get a clean URL which is still valid call it like this:
 ```
 
 
-For more examples see the [unit tests](https://github.com/xojoc/cleanurl/blob/main/src/test_cleanurl.py)
+For more examples see the [unit tests](https://github.com/xojoc/cleanurl/blob/main/src/test_cleanurl.py).
 
 # Why?
 While there are some libraries that handle general cases, this library has website specific rules that more aggresivly normalize urls.
@@ -47,4 +47,4 @@ Initially used for [discu.eu](https://discu.eu).
 
 
 # License
-*cleanurl* is [Free Software](https://www.gnu.org/philosophy/free-sw.html) and released as [AGPLv3](https://github.com/xojoc/cleanurl/blob/main/LICENSE)
+*cleanurl* is [Free Software](https://www.gnu.org/philosophy/free-sw.html) and is released as [AGPLv3](https://github.com/xojoc/cleanurl/blob/main/LICENSE)

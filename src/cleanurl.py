@@ -443,6 +443,29 @@ def __canonical_mastodon(
     return host, path, parsed_query
 
 
+def __canonical_reddit(
+    host, path, parsed_query, respect_semantics, host_remap
+):
+    if host in ("reddit.com", "www.reddit.com", "old.reddit.com"):
+        if host_remap:
+            host = "reddit.com"
+        else:
+            if host != "old.reddit.com":
+                host = "reddit.com"
+
+    parts = path.split("/")
+    if (
+        len(parts) >= 5
+        and parts[0] == ""
+        and parts[1] == "r"
+        and parts[3] == "comments"
+    ):
+        path = f"/{parts[1]}/{parts[2]}/{parts[3]}/{parts[4]}"
+        parsed_query = []
+
+    return host, path, parsed_query
+
+
 def __canonical_stackoverflow(
     host, path, parsed_query, respect_semantics, host_remap
 ):
@@ -476,6 +499,7 @@ def __canonical_specific_websites(
         __canonical_bbc,
         __canonical_twitter,
         __canonical_mastodon,
+        __canonical_reddit,
         __canonical_stackoverflow,
     ]:
         result = h(host, path, parsed_query, respect_semantics, host_remap)
@@ -526,6 +550,9 @@ def cleanurl(
     new_path = __fragment_to_path(scheme, host, path, fragment)
     if new_path is not None:
         path = new_path
+        fragment = ""
+
+    if not respect_semantics:
         fragment = ""
 
     result = __canonical_amp(

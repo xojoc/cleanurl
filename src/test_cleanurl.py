@@ -55,6 +55,10 @@ class Clean(unittest.TestCase):
             "stackoverflow.com/q/69503317",
             "https://aviation.stackexchange.com/questions/71119/would-converting-a-lazair-ultralight-to-4-x-3-hp-engines-and-using-the-props-as",
             "aviation.stackexchange.com/q/71119",
+            "https://example.com/#keep-fragment",
+            "example.com/#keep-fragment",
+            "https://old.reddit.com/r/wallstreetbets/comments/sv6clr/there_wont_be_a_war_in_ukraine_because_russia/",
+            "reddit.com/r/wallstreetbets/comments/sv6clr",
         ]
 
         for u, r in zip(urls[0::2], urls[1::2]):
@@ -121,6 +125,8 @@ class Clean(unittest.TestCase):
             "cnbc.com/2021/04/27/archegos-hit-to-ubs-stuns-investors-as-shares-slide",
             "https://en.m.wikipedia.org/wiki/Daphne_Caruana_Galizia",
             "wikipedia.org/wiki/daphne_caruana_galizia",
+            "https://example.com/#remove-fragment",
+            "example.com",
         ]
 
         for u, r in zip(urls[0::2], urls[1::2]):

@@ -22,8 +22,38 @@ class Result:
     parsed_url: urlparse.ParseResult
 
     @property
-    def scheme(self) -> str:
+    def scheme(self) -> str | None:
         return self.parsed_url.scheme
+
+    @property
+    def hostname(self) -> str | None:
+        return self.parsed_url.hostname
+
+    @property
+    def netloc(self) -> str | None:
+        return self.parsed_url.netloc
+
+    @property
+    def password(self) -> str | None:
+        return self.parsed_url.password
+
+    @property
+    def port(self) -> int | None:
+        return self.parsed_url.port
+
+    @property
+    def path(self) -> str | None:
+        return self.parsed_url.path
+
+    @property
+    def query(self) -> str | None:
+        return self.parsed_url.query
+
+    @property
+    def parsed_query(self) -> list[tuple[str, str]]:
+        return urlparse.parse_qsl(
+            self.parsed_url.query, keep_blank_values=True
+        )
 
     @property
     def url(self) -> str:
@@ -37,12 +67,6 @@ class Result:
         if self.parsed_url.netloc:
             u = u.removeprefix("//")
         return u
-
-    @property
-    def parsed_query(self) -> list[tuple[str, str]]:
-        return urlparse.parse_qsl(
-            self.parsed_url.query, keep_blank_values=True
-        )
 
 
 def __canonical_host(host, respect_semantics):

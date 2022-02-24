@@ -1,5 +1,5 @@
 # cleanurl
-Removes clutter from URLs and returns a canonicalized version
+Remove clutter from URLs and return a canonicalized version
 
 # Install
 ```
@@ -30,11 +30,24 @@ If you want to get a clean URL which is still valid call it like this:
 ```
 >>> r = cleanurl.cleanurl('https://www.xojoc.pw/blog/////focus.html', respect_semantics=True)
 >>> r.url
-'https://xojoc.pw/blog/focus.html'
+'https://www.xojoc.pw/blog/focus.html'
 ```
 
+```celeanurl.cleanurl``` parameters:
+
+ - ```generic``` -> if True don't use site specific rules
+ - ```respect_semantics``` -> if True make sure the returned URL is still valid, altough it may still contain some superfluous elements
+ - ```host_remap``` -> whether to remap hosts. Example:
+```
+>>> import cleanurl
+>>> cleanurl.cleanurl('https://threadreaderapp.com/thread/1453753924960219145', host_remap=True).url
+'https://twitter.com/i/status/1453753924960219145'
+>>> cleanurl.cleanurl('https://threadreaderapp.com/thread/1453753924960219145', host_remap=False).url
+'https://threadreaderapp.com/thread/1453753924960219145'
+```
 
 For more examples see the [unit tests](https://github.com/xojoc/cleanurl/blob/main/src/test_cleanurl.py).
+
 
 # Why?
 While there are some libraries that handle general cases, this library has website specific rules that more aggresivly normalize urls.
@@ -42,9 +55,9 @@ While there are some libraries that handle general cases, this library has websi
 # Users
 Initially used for [discu.eu](https://discu.eu).
 
+
 # Who?
 *cleanurl* was written by [Alexandru Cojocaru](https://xojoc.pw).
-
 
 # License
 *cleanurl* is [Free Software](https://www.gnu.org/philosophy/free-sw.html) and is released as [AGPLv3](https://github.com/xojoc/cleanurl/blob/main/LICENSE)

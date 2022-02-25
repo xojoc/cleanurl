@@ -59,6 +59,12 @@ class Clean(unittest.TestCase):
             "example.com/#keep-fragment",
             "https://old.reddit.com/r/wallstreetbets/comments/sv6clr/there_wont_be_a_war_in_ukraine_because_russia/",
             "reddit.com/r/wallstreetbets/comments/sv6clr",
+            "https://www.amazon.it/Free-Freedom-Paperback-Stallmans-Software-ebook/dp/B006GCNP5S/ref=sr_1_2?__mk_it_IT=%C3%85M%C3%85%C5%BD%C3%95%C3%91&crid=A32SDX7PEZAW&keywords=richard+stallman&qid=1645805689&sprefix=richard+stallman%2Caps%2C154&sr=8-2",
+            "amazon.it/dp/B006GCNP5S",
+            "https://amazon.com/dp/B006GCNP5S?keywords=richard+stallman",
+            "amazon.com/dp/B006GCNP5S",
+            "https://amazon.com/dp/B006GCNP5S",
+            "amazon.com/dp/B006GCNP5S",
         ]
 
         for u, r in zip(urls[0::2], urls[1::2]):

@@ -55,6 +55,7 @@ While there are some libraries that handle general cases, this library has websi
 # Users
 Initially used for [discu.eu](https://discu.eu).
 
+[Discussions around the web](https://discu.eu/q/https://github.com/xojoc/cleanurl)
 
 # Who?
 *cleanurl* was written by [Alexandru Cojocaru](https://xojoc.pw).

@@ -507,6 +507,30 @@ def __canonical_stackoverflow(
     return host, path, parsed_query
 
 
+def __canonical_amazon(
+    host, path, parsed_query, respect_semantics, host_remap
+):
+    host_parts = host.split(".")
+    if len(host_parts) < 2:
+        return
+    if host_parts[0] == "www":
+        host_parts = host_parts[1:]
+
+    if host_parts[0] == "amazon":
+        parts = path.split("/")
+        parts = [p for p in parts if p]
+        for i, p in enumerate(parts):
+            if p == "dp" and i + 1 < len(parts):
+                path = f"/{parts[i]}/{parts[i+1]}"
+                parsed_query = []
+                break
+
+        if host_remap:
+            host = ".".join(host_parts)
+
+    return host, path, parsed_query
+
+
 def __canonical_specific_websites(
     host, path, parsed_query, respect_semantics, host_remap
 ):
@@ -525,8 +549,13 @@ def __canonical_specific_websites(
         __canonical_mastodon,
         __canonical_reddit,
         __canonical_stackoverflow,
+        __canonical_amazon,
     ]:
-        result = h(host, path, parsed_query, respect_semantics, host_remap)
+        result = None
+        try:
+            result = h(host, path, parsed_query, respect_semantics, host_remap)
+        except Exception:
+            pass
         if result:
             host, path, parsed_query = result
             host = host or ""

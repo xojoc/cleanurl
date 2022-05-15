@@ -596,10 +596,9 @@ def cleanurl(
 
     if u.scheme == "about" and u.path == "reader":
         pq = urlparse.parse_qs(u.query, keep_blank_values=True)
-        if pq.get("url"):
-            return cleanurl(
-                pq.get("url")[0], generic, respect_semantics, host_remap
-            )
+        urls = pq.get("url")
+        if urls:
+            return cleanurl(urls[0], generic, respect_semantics, host_remap)
 
     scheme = u.scheme
 

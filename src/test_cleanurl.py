@@ -65,6 +65,8 @@ class Clean(unittest.TestCase):
             "amazon.com/dp/B006GCNP5S",
             "https://amazon.com/dp/B006GCNP5S",
             "amazon.com/dp/B006GCNP5S",
+            "about:reader?url=https%3A%2F%2Fmedium.com%2Fstories-from-fawrakh%2Ftales-of-a-hybrid-generation-8ccc853cbb77",
+            "medium.com/p/8ccc853cbb77",
         ]
 
         for u, r in zip(urls[0::2], urls[1::2]):

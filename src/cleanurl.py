@@ -594,7 +594,15 @@ def cleanurl(
     else:
         u = url
 
+    if u.scheme == "about" and u.path == "reader":
+        pq = urlparse.parse_qs(u.query, keep_blank_values=True)
+        if pq.get("url"):
+            return cleanurl(
+                pq.get("url")[0], generic, respect_semantics, host_remap
+            )
+
     scheme = u.scheme
+
     host = __canonical_host(u.netloc, respect_semantics)
     path = __canonical_path(scheme, u.path, respect_semantics)
     parsed_query = __canonical_query(u.query, respect_semantics)

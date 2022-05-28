@@ -96,7 +96,7 @@ class Clean(unittest.TestCase):
             "http://www.path-normalization.com/a///index.html////",
             "path-normalization.com/a",
             "https://www.youtube.com/watch?v=71SsVUmT1ys&ignore=query",
-            "youtu.be/71SsVUmT1ys",
+            "youtu.be/71ssvumt1ys",
             "https://www.xojoc.pw/blog/////focus.html",
             "xojoc.pw/blog/focus",
             "https://web.archive.org/web/20200103092739/https://www.xojoc.pw/blog/focus.html",

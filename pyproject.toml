@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cleanurl"
-version = "0.1.10"
+version = "0.1.11"
 description = "Remove clutter from URLs and return a canonicalized version"
 authors = ["Alexandru Cojocaru <hi@xojoc.pw>"]
 license = "AGPL-3.0-or-later"

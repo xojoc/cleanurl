@@ -194,6 +194,13 @@ def __fragment_to_path(scheme, host, path, fragment):
     if (
         host == "groups.google.com"
         and path.startswith("/forum")
+        and fragment.startswith("!forum/")
+    ):
+        return "/g/" + fragment[len("!forum/") :]
+
+    if (
+        host == "groups.google.com"
+        and path.startswith("/forum")
         and fragment.startswith("!msg/")
     ):
         new_path = "/g/" + fragment[len("!msg/") :].replace("/", "/c/", 1)

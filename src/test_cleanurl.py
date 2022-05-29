@@ -117,6 +117,8 @@ class Clean(unittest.TestCase):
             "groups.google.com/g/mozilla.dev.platform/c/1PHhxBxSehQ",
             "https://groups.google.com/forum/?utm_term=0_62dc6ea1a0-4367aed1fd-246207570#!msg/mi.jobs/poxlcw8udk4/_ghzqb9sg9gj",
             "groups.google.com/g/mi.jobs/c/poxlcw8udk4/m/_ghzqb9sg9gj",
+            "https://groups.google.com/forum/#!forum/golang-nuts",
+            "groups.google.com/g/golang-nuts",
             "https://www.nytimes.com/2006/10/11/technology/11yahoo.html?ex=1318219200&en=538f73d9faa9d263&ei=5090&partner=rssuserland&emc=rss",
             "nytimes.com/2006/10/11/technology/11yahoo",
             "https://open.nytimes.com/tracking-covid-19-from-hundreds-of-sources-one-extracted-record-at-a-time-dd8cbd31f9b4",

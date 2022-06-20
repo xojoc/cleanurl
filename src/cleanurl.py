@@ -213,6 +213,19 @@ def __fragment_to_path(scheme, host, path, fragment):
         return new_path
 
 
+def __canonical_fragment(scheme, host, path, fragment, respect_semantics):
+    if host in ("sbcl.org", "www.sbcl.org") and path in (
+        "/news",
+        "/news.html",
+    ):
+        return fragment
+
+    if respect_semantics:
+        return fragment
+    else:
+        return None
+
+
 # fixme: the amped url may have a different scheme from the amp url
 def __canonical_amp(host, path, parsed_query, respect_semantics, host_remap):
     path_is_amped_url = False
@@ -538,6 +551,30 @@ def __canonical_amazon(
     return host, path, parsed_query
 
 
+def __canonical_tumblr(
+    host, path, parsed_query, respect_semantics, host_remap
+):
+    if not host:
+        return
+
+    host_parts = host.split(".")
+    if not (
+        len(host_parts) >= 3
+        and host_parts[-2] == "tumblr"
+        and host_parts[-1] == "com"
+    ):
+        return
+
+    path_parts = path.split("/")
+
+    if (
+        len(path_parts) >= 3
+        and path_parts[1] == "post"
+        and path_parts[2].isdigit()
+    ):
+        return host, "/post/" + path_parts[2], []
+
+
 def __canonical_specific_websites(
     host, path, parsed_query, respect_semantics, host_remap
 ):
@@ -557,6 +594,7 @@ def __canonical_specific_websites(
         __canonical_reddit,
         __canonical_stackoverflow,
         __canonical_amazon,
+        __canonical_tumblr,
     ]:
         result = None
         try:
@@ -619,8 +657,10 @@ def cleanurl(
         path = new_path
         fragment = ""
 
-    if not respect_semantics:
-        fragment = ""
+    fragment = (
+        __canonical_fragment(scheme, host, path, fragment, respect_semantics)
+        or ""
+    )
 
     result = __canonical_amp(
         host, path, parsed_query, respect_semantics, host_remap

@@ -137,6 +137,12 @@ class Clean(unittest.TestCase):
             "wikipedia.org/wiki/daphne_caruana_galizia",
             "https://example.com/#remove-fragment",
             "example.com",
+            "https://demo.tumblr.com/post/232/an-example-post",
+            "demo.tumblr.com/post/232",
+            "https://xojoc.pw/path#remove-fragment",
+            "xojoc.pw/path",
+            "http://www.sbcl.org/news.html#2.2.5",
+            "sbcl.org/news#2.2.5",
         ]
 
         for u, r in zip(urls[0::2], urls[1::2]):

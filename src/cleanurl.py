@@ -575,6 +575,20 @@ def __canonical_tumblr(
         return host, "/post/" + path_parts[2], []
 
 
+def __canonical_lwn(host, path, parsed_query, respect_semantics, host_remap):
+    if host not in ("lwn.net", "www.lwn.net"):
+        return
+
+    path_parts = [p for p in path.split("/") if p]
+
+    if (
+        len(path_parts) >= 2
+        and path_parts[0].lower() == "subscriberlink"
+        and path_parts[1].isdigit()
+    ):
+        return host, "/Articles/" + path_parts[1], []
+
+
 def __canonical_specific_websites(
     host, path, parsed_query, respect_semantics, host_remap
 ):
@@ -595,6 +609,7 @@ def __canonical_specific_websites(
         __canonical_stackoverflow,
         __canonical_amazon,
         __canonical_tumblr,
+        __canonical_lwn,
     ]:
         result = None
         try:

@@ -16,6 +16,7 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.9"
+langcodes = "^3.3.0"
 
 [tool.poetry.dev-dependencies]
 mypy = "^0.931"

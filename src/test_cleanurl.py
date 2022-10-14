@@ -71,11 +71,41 @@ class Clean(unittest.TestCase):
             "lwn.net/Articles/909887",
             "https://lwn.net/SubscriberLink/909887/14eac5b0b6f59131/",
             "lwn.net/Articles/909887",
+            "https://store.google.com/category/phones?hl=en-US",
+            "store.google.com/category/phones",
+            "https://store.google.com/category/phones?hl=not-lang",
+            "store.google.com/category/phones?hl=not-lang",
+            "https://dl.acm.org/doi/pdf/10.1145/3371071",
+            "doi.org/10.1145/3371071",
+            "https://dl.acm.org/doi/10.1145/3371071",
+            "doi.org/10.1145/3371071",
+            "https://www.tandfonline.com/doi/abs/10.1080/03085147.2019.1678262",
+            "doi.org/10.1080/03085147.2019.1678262",
+            "https://doi.org/10.1000/182",
+            "doi.org/10.1000/182",
+            "https://arxiv.org/pdf/2210.07230.pdf",
+            "arxiv.org/abs/2210.07230",
+            "https://thenewstack.io/rust-vs-go-why-theyre-better-together/?s=09",
+            "thenewstack.io/rust-vs-go-why-theyre-better-together",
+            "https://groups.google.com/forum/#!topic/mozilla.dev.platform/1PHhxBxSehQ",
+            "groups.google.com/g/mozilla.dev.platform/c/1PHhxBxSehQ",
+            "https://groups.google.com/forum/?utm_term=0_62dc6ea1a0-4367aed1fd-246207570#!msg/mi.jobs/poxlcw8udk4/_ghzqb9sg9gj",
+            "groups.google.com/g/mi.jobs/c/poxlcw8udk4/m/_ghzqb9sg9gj",
+            "https://groups.google.com/forum/#!forum/golang-nuts",
+            "groups.google.com/g/golang-nuts",
         ]
 
         for u, r in zip(urls[0::2], urls[1::2]):
             c = cleanurl.cleanurl(u, generic=False, respect_semantics=True)
             self.assertEqual(c.schemeless_url, r, msg=u)
+
+            self.assertEqual(
+                c.schemeless_url,
+                cleanurl.cleanurl(
+                    c.url, generic=False, respect_semantics=True
+                ).schemeless_url,
+                msg=f"Clean clean {c.schemeless_url}",
+            )
 
     def test_semantics_no_host_remap(self):
         urls = [
@@ -83,6 +113,8 @@ class Clean(unittest.TestCase):
             "mastodon.social/@gitea@social.gitea.io/107576792277055419",
             "https://nitter.net/AdamCSharp/status/1473035981511180291",
             "nitter.net/i/status/1473035981511180291",
+            "https://bgolus.medium.com/the-quest-for-very-wide-outlines-ba82ed442cd9",
+            "bgolus.medium.com/ba82ed442cd9",
         ]
 
         for u, r in zip(urls[0::2], urls[1::2]):
@@ -91,12 +123,23 @@ class Clean(unittest.TestCase):
             )
             self.assertEqual(c.schemeless_url, r, msg=u)
 
+            self.assertEqual(
+                c.schemeless_url,
+                cleanurl.cleanurl(
+                    c.url,
+                    generic=False,
+                    respect_semantics=True,
+                    host_remap=False,
+                ).schemeless_url,
+                msg=f"Clean clean {c.schemeless_url}",
+            )
+
     def test_no_semantics(self):
         urls = [
             "https://medium.com/swlh/caching-and-scaling-django-dc80a54012",
             "medium.com/p/dc80a54012",
             "https://bgolus.medium.com/the-quest-for-very-wide-outlines-ba82ed442cd9",
-            "bgolus.medium.com/ba82ed442cd9",
+            "medium.com/p/ba82ed442cd9",
             "http://www.path-normalization.com/a///index.html////",
             "path-normalization.com/a",
             "https://www.youtube.com/watch?v=71SsVUmT1ys&ignore=query",
@@ -117,12 +160,6 @@ class Clean(unittest.TestCase):
             "github.com/xojoc/discussions",
             "https://github.com/satwikkansal/wtfpython/blob/master/readme.md",
             "github.com/satwikkansal/wtfpython",
-            "https://groups.google.com/forum/#!topic/mozilla.dev.platform/1PHhxBxSehQ",
-            "groups.google.com/g/mozilla.dev.platform/c/1PHhxBxSehQ",
-            "https://groups.google.com/forum/?utm_term=0_62dc6ea1a0-4367aed1fd-246207570#!msg/mi.jobs/poxlcw8udk4/_ghzqb9sg9gj",
-            "groups.google.com/g/mi.jobs/c/poxlcw8udk4/m/_ghzqb9sg9gj",
-            "https://groups.google.com/forum/#!forum/golang-nuts",
-            "groups.google.com/g/golang-nuts",
             "https://www.nytimes.com/2006/10/11/technology/11yahoo.html?ex=1318219200&en=538f73d9faa9d263&ei=5090&partner=rssuserland&emc=rss",
             "nytimes.com/2006/10/11/technology/11yahoo",
             "https://open.nytimes.com/tracking-covid-19-from-hundreds-of-sources-one-extracted-record-at-a-time-dd8cbd31f9b4",
@@ -147,8 +184,22 @@ class Clean(unittest.TestCase):
             "xojoc.pw/path",
             "http://www.sbcl.org/news.html#2.2.5",
             "sbcl.org/news#2.2.5",
+            "https://www.cloudflare.com/it-it/learning/security/glossary/what-is-bgp/",
+            "cloudflare.com/learning/security/glossary/what-is-bgp",
+            "https://www.typescriptlang.org/play?#code/Base64",
+            "typescriptlang.org/play#code/Base64",
+            "https://docs.djangoproject.com/en/4.0/howto/deployment/asgi/",
+            "docs.djangoproject.com/howto/deployment/asgi",
         ]
 
         for u, r in zip(urls[0::2], urls[1::2]):
             c = cleanurl.cleanurl(u, generic=False, respect_semantics=False)
             self.assertEqual(c.schemeless_url, r)
+
+            self.assertEqual(
+                c.schemeless_url,
+                cleanurl.cleanurl(
+                    c.url, generic=False, respect_semantics=False
+                ).schemeless_url,
+                msg=f"Clean clean {c.schemeless_url}",
+            )

@@ -2,6 +2,7 @@ from __future__ import annotations  # for union type
 from urllib import parse as urlparse
 from dataclasses import dataclass
 import re
+import langcodes
 
 
 def __replace_last(s, old, new):
@@ -15,6 +16,10 @@ def __is_integer(s):
         return True
     except ValueError:
         return False
+
+
+def __is_lang_tag(s):
+    return s and langcodes.tag_is_valid(s)
 
 
 @dataclass
@@ -140,7 +145,7 @@ def __canonical_path(scheme, path, respect_semantics):
 
 
 def __canonical_query(query, respect_semantics):
-    pq = urlparse.parse_qsl(query, keep_blank_values=True)
+    pq = urlparse.parse_qs(query, keep_blank_values=True) or {}
 
     queries_to_skip = {
         # https://en.wikipedia.org/wiki/UTM_parameters
@@ -165,13 +170,20 @@ def __canonical_query(query, respect_semantics):
             "cmpid",
             "camp",
             "cid",
+            "ncid",
             "zanpid",
             "guccounter",
             "campaign_id",
             "tstart",
         }
 
-    return sorted([q for q in pq if q[0] not in queries_to_skip])
+    v = pq.get("hl") or [None]
+    if __is_lang_tag(v[0]):
+        pq.pop("hl", None)
+
+    return sorted(
+        [(q, v[0]) for q, v in pq.items() if v and q not in queries_to_skip]
+    )
 
 
 def __fragment_to_path(scheme, host, path, fragment):
@@ -217,6 +229,15 @@ def __canonical_fragment(scheme, host, path, fragment, respect_semantics):
     if host in ("sbcl.org", "www.sbcl.org") and path in (
         "/news",
         "/news.html",
+    ):
+        return fragment
+
+    if (
+        host in ("typescriptlang.org", "www.typescriptlang.org")
+        and path
+        and path.startswith("/play")
+        and fragment
+        and fragment.startswith("code/")
     ):
         return fragment
 
@@ -314,14 +335,16 @@ def __canonical_youtube(
 def __canonical_medium(
     host, path, parsed_query, respect_semantics, host_remap
 ):
+    path_parts = path.split("/")
     if host == "medium.com":
-        path_parts = path.split("/")
         if len(path_parts) >= 3:
             return host, "/p/" + path_parts[-1].split("-")[-1], []
     if host.endswith(".medium.com"):
-        path_parts = path.split("/")
         if len(path_parts) >= 2:
-            return host, "/" + path_parts[-1].split("-")[-1], []
+            if host_remap:
+                return "medium.com", "/p/" + path_parts[-1].split("-")[-1], []
+            else:
+                return host, "/" + path_parts[-1].split("-")[-1], []
 
 
 def __canonical_github(
@@ -589,6 +612,77 @@ def __canonical_lwn(host, path, parsed_query, respect_semantics, host_remap):
         return host, "/Articles/" + path_parts[1], []
 
 
+def __canonical_doi(host, path, parsed_query, respect_semantics, host_remap):
+    if not host_remap:
+        return
+
+    path_parts = [p for p in path.split("/") if p]
+
+    if host in ("doi.org", "www.doi.org") and len(path_parts) >= 2:
+        if path_parts[0].startswith("10."):
+            return "doi.org", "/" + "/".join(path_parts[:2]).lower(), []
+
+    doi_idx = path_parts.index("doi")
+    doi_parts = path_parts[doi_idx:]
+    for i, pp in enumerate(doi_parts):
+        if pp.startswith("10.") and doi_parts[i + 1]:
+            return (
+                "doi.org",
+                "/" + pp.lower() + "/" + doi_parts[i + 1].lower(),
+                [],
+            )
+
+
+def __canonical_remove_language(
+    host, path, parsed_query, respect_semantics, host_remap
+):
+    if respect_semantics:
+        return
+
+    path_parts = [p for p in path.split("/") if p]
+    if len(path_parts) >= 2 and __is_lang_tag(path_parts[0]):
+        return host, "/" + "/".join(path_parts[1:]), parsed_query
+
+
+def __canonical_arxiv(host, path, parsed_query, respect_semantics, host_remap):
+    if host not in ("arxiv.org", "www.arxiv.org"):
+        return
+
+    # syntax: https://arxiv.org/help/arxiv_identifier
+
+    path_parts = [p for p in path.split("/") if p]
+
+    if len(path_parts) >= 2:
+        dot_parts = path_parts[1].split(".")
+        if dot_parts[0].isdigit() and dot_parts[1].isdigit():
+            return "arxiv.org", f"/abs/{dot_parts[0]}.{dot_parts[1]}", []
+
+
+def __canonical_djangoproject(
+    host, path, parsed_query, respect_semantics, host_remap
+):
+    if respect_semantics:
+        return
+
+    path_parts = [p for p in path.split("/") if p]
+
+    if host == "docs.djangoproject.com" and (
+        re.match(r"^\d+\.\d+$", path_parts[0]) or path_parts[0] == "dev"
+    ):
+        return host, "/" + "/".join(path_parts[1:]), parsed_query
+
+
+def __canonical_thenewstack(
+    host, path, parsed_query, respect_semantics, host_remap
+):
+    if host == "thenewstack.io":
+        return (
+            host,
+            path.removesuffix("/"),
+            [q for q in parsed_query if not (q[0] == "s" and q[1].isdigit())],
+        )
+
+
 def __canonical_specific_websites(
     host, path, parsed_query, respect_semantics, host_remap
 ):
@@ -610,6 +704,11 @@ def __canonical_specific_websites(
         __canonical_amazon,
         __canonical_tumblr,
         __canonical_lwn,
+        __canonical_doi,
+        __canonical_remove_language,
+        __canonical_arxiv,
+        __canonical_djangoproject,
+        __canonical_thenewstack,
     ]:
         result = None
         try:
@@ -669,7 +768,7 @@ def cleanurl(
 
     new_path = __fragment_to_path(scheme, host, path, fragment)
     if new_path is not None:
-        path = new_path
+        path = __canonical_path(scheme, new_path, respect_semantics)
         fragment = ""
 
     fragment = (

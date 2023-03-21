@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cleanurl"
-version = "0.1.14"
+version = "0.1.15"
 description = "Remove clutter from URLs and return a canonicalized version"
 authors = ["Alexandru Cojocaru <hi@xojoc.pw>"]
 license = "AGPL-3.0-or-later"
@@ -19,10 +19,11 @@ python = "^3.9"
 langcodes = "^3.3.0"
 
 [tool.poetry.dev-dependencies]
-mypy = "^0.931"
-flake8 = "^4.0.1"
-pytest = "^7.0.0"
-black = {version = "^22.1.0", allow-prereleases = true}
+mypy = "*"
+flake8 = "*"
+pytest = "*"
+black = {version = "*", allow-prereleases = true}
+
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

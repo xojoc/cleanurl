@@ -93,6 +93,8 @@ class Clean(unittest.TestCase):
             "groups.google.com/g/mi.jobs/c/poxlcw8udk4/m/_ghzqb9sg9gj",
             "https://groups.google.com/forum/#!forum/golang-nuts",
             "groups.google.com/g/golang-nuts",
+            "https://www.typescriptlang.org/play#code/JYOwLgpgTgZghgYwgAjMg3gWAFDL8uAIwQC4MBzMgZzClHIF8BuHfZAEwhjPXbJACuAW0LRmOBjhwIA9iBrJuyAApwoYYHAA2AHjAA+ZAF4MrfEVIUyAcgAW1hgBozeTkt5kA7JOzjs0uQU4Y2RrC2sCKmQAawgATxkYVBZ-bFl5NCgQmABtOABdFNyCkKgmIA",
+            "www.typescriptlang.org/play?code=JYOwLgpgTgZghgYwgAjMg3gWAFDL8uAIwQC4MBzMgZzClHIF8BuHfZAEwhjPXbJACuAW0LRmOBjhwIA9iBrJuyAApwoYYHAA2AHjAA%2BZAF4MrfEVIUyAcgAW1hgBozeTkt5kA7JOzjs0uQU4Y2RrC2sCKmQAawgATxkYVBZ-bFl5NCgQmABtOABdFNyCkKgmIA",
         ]
 
         for u, r in zip(urls[0::2], urls[1::2]):
@@ -187,7 +189,7 @@ class Clean(unittest.TestCase):
             "https://www.cloudflare.com/it-it/learning/security/glossary/what-is-bgp/",
             "cloudflare.com/learning/security/glossary/what-is-bgp",
             "https://www.typescriptlang.org/play?#code/Base64",
-            "typescriptlang.org/play#code/Base64",
+            "typescriptlang.org/play?code=Base64",
             "https://docs.djangoproject.com/en/4.0/howto/deployment/asgi/",
             "docs.djangoproject.com/howto/deployment/asgi",
         ]

@@ -61,6 +61,10 @@ class Result:
         )
 
     @property
+    def fragment(self) -> str | None:
+        return self.parsed_url.fragment
+
+    @property
     def url(self) -> str:
         return urlparse.urlunparse(self.parsed_url)
 
@@ -283,7 +287,7 @@ def __canonical_amp(host, path, parsed_query, respect_semantics, host_remap):
 
 # fixme: the archived url may have a different scheme from the webarchive url
 def __canonical_webarchive(
-    host, path, parsed_query, respect_semantics, host_remap
+    host, path, parsed_query, fragment, respect_semantics, host_remap
 ):
     if host != "web.archive.org":
         return
@@ -304,13 +308,18 @@ def __canonical_webarchive(
                 respect_semantics=respect_semantics,
                 host_remap=host_remap,
             )
-            return u.parsed_url.netloc, u.parsed_url.path, u.parsed_query
+            return (
+                u.parsed_url.netloc,
+                u.parsed_url.path,
+                u.parsed_query,
+                u.fragment,
+            )
         except Exception:
             pass
 
 
 def __canonical_youtube(
-    host, path, parsed_query, respect_semantics, host_remap
+    host, path, parsed_query, fragment, respect_semantics, host_remap
 ):
     if host in ("youtube.com", "www.youtube.com"):
         video_id = None
@@ -326,48 +335,55 @@ def __canonical_youtube(
                 video_id = path_parts[-1]
 
         if video_id:
-            return "youtu.be", "/" + video_id.lower(), []
+            return "youtu.be", "/" + video_id.lower(), [], None
 
     if host_remap and host == "dev.tube" and path.startswith("/video/"):
-        return "youtu.be", path[len("/video") :].lower(), []
+        return "youtu.be", path[len("/video") :].lower(), [], None
 
 
 def __canonical_medium(
-    host, path, parsed_query, respect_semantics, host_remap
+    host, path, parsed_query, fragment, respect_semantics, host_remap
 ):
     path_parts = path.split("/")
     if host == "medium.com":
         if len(path_parts) >= 3:
-            return host, "/p/" + path_parts[-1].split("-")[-1], []
+            return host, "/p/" + path_parts[-1].split("-")[-1], [], None
     if host.endswith(".medium.com"):
         if len(path_parts) >= 2:
             if host_remap:
-                return "medium.com", "/p/" + path_parts[-1].split("-")[-1], []
+                return (
+                    "medium.com",
+                    "/p/" + path_parts[-1].split("-")[-1],
+                    [],
+                    None,
+                )
             else:
-                return host, "/" + path_parts[-1].split("-")[-1], []
+                return host, "/" + path_parts[-1].split("-")[-1], [], None
 
 
 def __canonical_github(
-    host, path, parsed_query, respect_semantics, host_remap
+    host, path, parsed_query, fragment, respect_semantics, host_remap
 ):
     if host == "github.com":
         path = path.removesuffix("/tree/master")
         path = path.removesuffix("/blob/master/readme")
+        fragment = None
 
-    return host, path, parsed_query
+    return host, path, parsed_query, fragment
 
 
 def __canonical_bitbucket(
-    host, path, parsed_query, respect_semantics, host_remap
+    host, path, parsed_query, fragment, respect_semantics, host_remap
 ):
     if host == "bitbucket.org":
         path = path.removesuffix("/src/master")
+        fragment = None
 
-    return host, path, parsed_query
+    return host, path, parsed_query, fragment
 
 
 def __canonical_nytimes(
-    host, path, parsed_query, respect_semantics, host_remap
+    host, path, parsed_query, fragment, respect_semantics, host_remap
 ):
     if host == "nytimes.com":
         parsed_query = []
@@ -377,21 +393,22 @@ def __canonical_nytimes(
             path_parts = path.split("/")
             if len(path_parts) >= 2:
                 path = "/" + path_parts[-1].split("-")[-1]
+                fragment = None
 
-    return host, path, parsed_query
+    return host, path, parsed_query, fragment
 
 
 def __canonical_techcrunch(
-    host, path, parsed_query, respect_semantics, host_remap
+    host, path, parsed_query, fragment, respect_semantics, host_remap
 ):
     if host == "techcrunch.com" or host.endswith(".techcrunch.com"):
         parsed_query = []
 
-    return host, path, parsed_query
+    return host, path, parsed_query, fragment
 
 
 def __canonical_wikipedia(
-    host, path, parsed_query, respect_semantics, host_remap
+    host, path, parsed_query, fragment, respect_semantics, host_remap
 ):
     if host.endswith(".wikipedia.org"):
         for q in parsed_query:
@@ -412,30 +429,32 @@ def __canonical_wikipedia(
 
         host = ".".join(host_parts)
 
-    return host, path, parsed_query
+    return host, path, parsed_query, fragment
 
 
 def __canonical_arstechnica(
-    host, path, parsed_query, respect_semantics, host_remap
+    host, path, parsed_query, fragment, respect_semantics, host_remap
 ):
     if host == "arstechnica" and "viewtopic.php" not in path:
         parsed_query = []
 
-    return host, path, parsed_query
+    return host, path, parsed_query, fragment
 
 
-def __canonical_bbc(host, path, parsed_query, respect_semantics, host_remap):
+def __canonical_bbc(
+    host, path, parsed_query, fragment, respect_semantics, host_remap
+):
     if host_remap and (host == "bbc.co.uk" or host.endswith(".bbc.co.uk")):
         host = host.replace(".co.uk", ".com")
 
     if host in ("news.bbc.com", "news.bbc.co.uk"):
         parsed_query = []
 
-    return host, path, parsed_query
+    return host, path, parsed_query, fragment
 
 
 def __canonical_twitter(
-    host, path, parsed_query, respect_semantics, host_remap
+    host, path, parsed_query, fragment, respect_semantics, host_remap
 ):
     if host in ("www.twitter.com", "twitter.com"):
         if path == "/home":
@@ -474,11 +493,11 @@ def __canonical_twitter(
         [q for q in parsed_query if q[0] not in queries_to_skip]
     )
 
-    return host, path, parsed_query
+    return host, path, parsed_query, fragment
 
 
 def __canonical_mastodon(
-    host, path, parsed_query, respect_semantics, host_remap
+    host, path, parsed_query, fragment, respect_semantics, host_remap
 ):
     parts = path.split("/")
     if (
@@ -507,11 +526,11 @@ def __canonical_mastodon(
                 path = "@" + account_parts[1] + "/" + parts[2]
                 parsed_query = []
 
-    return host, path, parsed_query
+    return host, path, parsed_query, fragment
 
 
 def __canonical_reddit(
-    host, path, parsed_query, respect_semantics, host_remap
+    host, path, parsed_query, fragment, respect_semantics, host_remap
 ):
     if host in ("reddit.com", "www.reddit.com", "old.reddit.com"):
         if host_remap:
@@ -530,11 +549,11 @@ def __canonical_reddit(
         path = f"/{parts[1]}/{parts[2]}/{parts[3]}/{parts[4]}"
         parsed_query = []
 
-    return host, path, parsed_query
+    return host, path, parsed_query, fragment
 
 
 def __canonical_stackoverflow(
-    host, path, parsed_query, respect_semantics, host_remap
+    host, path, parsed_query, fragment, respect_semantics, host_remap
 ):
     parts = path.split("/")
     if (
@@ -547,11 +566,11 @@ def __canonical_stackoverflow(
         path = "/q/" + parts[2]
         parsed_query = []
 
-    return host, path, parsed_query
+    return host, path, parsed_query, fragment
 
 
 def __canonical_amazon(
-    host, path, parsed_query, respect_semantics, host_remap
+    host, path, parsed_query, fragment, respect_semantics, host_remap
 ):
     host_parts = host.split(".")
     if len(host_parts) < 2:
@@ -571,11 +590,11 @@ def __canonical_amazon(
         if host_remap:
             host = ".".join(host_parts)
 
-    return host, path, parsed_query
+    return host, path, parsed_query, fragment
 
 
 def __canonical_tumblr(
-    host, path, parsed_query, respect_semantics, host_remap
+    host, path, parsed_query, fragment, respect_semantics, host_remap
 ):
     if not host:
         return
@@ -595,10 +614,12 @@ def __canonical_tumblr(
         and path_parts[1] == "post"
         and path_parts[2].isdigit()
     ):
-        return host, "/post/" + path_parts[2], []
+        return host, "/post/" + path_parts[2], [], None
 
 
-def __canonical_lwn(host, path, parsed_query, respect_semantics, host_remap):
+def __canonical_lwn(
+    host, path, parsed_query, fragment, respect_semantics, host_remap
+):
     if host not in ("lwn.net", "www.lwn.net"):
         return
 
@@ -609,10 +630,12 @@ def __canonical_lwn(host, path, parsed_query, respect_semantics, host_remap):
         and path_parts[0].lower() == "subscriberlink"
         and path_parts[1].isdigit()
     ):
-        return host, "/Articles/" + path_parts[1], []
+        return host, "/Articles/" + path_parts[1], [], None
 
 
-def __canonical_doi(host, path, parsed_query, respect_semantics, host_remap):
+def __canonical_doi(
+    host, path, parsed_query, fragment, respect_semantics, host_remap
+):
     if not host_remap:
         return
 
@@ -620,7 +643,7 @@ def __canonical_doi(host, path, parsed_query, respect_semantics, host_remap):
 
     if host in ("doi.org", "www.doi.org") and len(path_parts) >= 2:
         if path_parts[0].startswith("10."):
-            return "doi.org", "/" + "/".join(path_parts[:2]).lower(), []
+            return "doi.org", "/" + "/".join(path_parts[:2]).lower(), [], None
 
     doi_idx = path_parts.index("doi")
     doi_parts = path_parts[doi_idx:]
@@ -630,21 +653,24 @@ def __canonical_doi(host, path, parsed_query, respect_semantics, host_remap):
                 "doi.org",
                 "/" + pp.lower() + "/" + doi_parts[i + 1].lower(),
                 [],
+                None,
             )
 
 
 def __canonical_remove_language(
-    host, path, parsed_query, respect_semantics, host_remap
+    host, path, parsed_query, fragment, respect_semantics, host_remap
 ):
     if respect_semantics:
         return
 
     path_parts = [p for p in path.split("/") if p]
     if len(path_parts) >= 2 and __is_lang_tag(path_parts[0]):
-        return host, "/" + "/".join(path_parts[1:]), parsed_query
+        return host, "/" + "/".join(path_parts[1:]), parsed_query, fragment
 
 
-def __canonical_arxiv(host, path, parsed_query, respect_semantics, host_remap):
+def __canonical_arxiv(
+    host, path, parsed_query, fragment, respect_semantics, host_remap
+):
     if host not in ("arxiv.org", "www.arxiv.org"):
         return
 
@@ -655,11 +681,11 @@ def __canonical_arxiv(host, path, parsed_query, respect_semantics, host_remap):
     if len(path_parts) >= 2:
         dot_parts = path_parts[1].split(".")
         if dot_parts[0].isdigit() and dot_parts[1].isdigit():
-            return "arxiv.org", f"/abs/{dot_parts[0]}.{dot_parts[1]}", []
+            return "arxiv.org", f"/abs/{dot_parts[0]}.{dot_parts[1]}", [], None
 
 
 def __canonical_djangoproject(
-    host, path, parsed_query, respect_semantics, host_remap
+    host, path, parsed_query, fragment, respect_semantics, host_remap
 ):
     if respect_semantics:
         return
@@ -669,22 +695,32 @@ def __canonical_djangoproject(
     if host == "docs.djangoproject.com" and (
         re.match(r"^\d+\.\d+$", path_parts[0]) or path_parts[0] == "dev"
     ):
-        return host, "/" + "/".join(path_parts[1:]), parsed_query
+        return host, "/" + "/".join(path_parts[1:]), parsed_query, None
 
 
 def __canonical_thenewstack(
-    host, path, parsed_query, respect_semantics, host_remap
+    host, path, parsed_query, fragment, respect_semantics, host_remap
 ):
     if host == "thenewstack.io":
         return (
             host,
             path.removesuffix("/"),
             [q for q in parsed_query if not (q[0] == "s" and q[1].isdigit())],
+            None,
         )
 
 
+def __canonical_typescript(
+    host, path, parsed_query, fragment, respect_semantics, host_remap
+):
+    if host in ("typescriptlang.org", "www.typescriptlang.org"):
+        if path.startswith("/play"):
+            if fragment.startswith("code/"):
+                return host, path, [("code", fragment[5:])], None
+
+
 def __canonical_specific_websites(
-    host, path, parsed_query, respect_semantics, host_remap
+    host, path, parsed_query, fragment, respect_semantics, host_remap
 ):
     for h in [
         __canonical_webarchive,
@@ -709,19 +745,28 @@ def __canonical_specific_websites(
         __canonical_arxiv,
         __canonical_djangoproject,
         __canonical_thenewstack,
+        __canonical_typescript,
     ]:
         result = None
         try:
-            result = h(host, path, parsed_query, respect_semantics, host_remap)
+            result = h(
+                host,
+                path,
+                parsed_query,
+                fragment or "",
+                respect_semantics,
+                host_remap,
+            )
         except Exception:
             pass
         if result:
-            host, path, parsed_query = result
+            host, path, parsed_query, fragment = result
             host = host or ""
             path = path or ""
             parsed_query = parsed_query or []
+            fragment = fragment or ""
 
-    return host, path, parsed_query
+    return host, path, parsed_query, fragment
 
 
 __host_map = {"edition.cnn.com": "cnn.com"}
@@ -786,8 +831,8 @@ def cleanurl(
         parsed_query = parsed_query or []
 
     if not generic:
-        host, path, parsed_query = __canonical_specific_websites(
-            host, path, parsed_query, respect_semantics, host_remap
+        host, path, parsed_query, fragment = __canonical_specific_websites(
+            host, path, parsed_query, fragment, respect_semantics, host_remap
         )
         if host_remap:
             host = _remap_host(host)

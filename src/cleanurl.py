@@ -335,10 +335,10 @@ def __canonical_youtube(
                 video_id = path_parts[-1]
 
         if video_id:
-            return "youtu.be", "/" + video_id.lower(), [], None
+            return "youtu.be", "/" + video_id, [], None
 
     if host_remap and host == "dev.tube" and path.startswith("/video/"):
-        return "youtu.be", path[len("/video") :].lower(), [], None
+        return "youtu.be", path[len("/video") :], [], None
 
 
 def __canonical_medium(
